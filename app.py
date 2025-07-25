@@ -153,34 +153,34 @@ def register_routes(app, search_service, storage_service):
         
         try:
             # 検索実行
-            articles = search_service.search_articles(tool_name)
+            search_result = search_service.search_articles(tool_name)
             
             # 検索結果をデータベースに保存
-            search_result = {
+            search_data = {
                 'search_query': tool_name,
-                'articles': articles,
-                'search_date': datetime.now(),
-                'total_count': len(articles)
+                'articles': search_result.articles,
+                'search_date': search_result.search_date,
+                'total_count': search_result.total_count
             }
             
             # ストレージに保存
-            storage_success = storage_service.save_search_result(search_result)
+            storage_success = storage_service.save_search_result(search_data)
             
             if not storage_success:
                 app.logger.warning("検索結果の保存に失敗しました")
                 flash('検索結果の保存に失敗しましたが、検索は完了しました', 'warning')
             
-            app.logger.info(f"検索完了: {len(articles)}件の記事が見つかりました")
+            app.logger.info(f"検索完了: {search_result.total_count}件の記事が見つかりました")
             
             # プラットフォーム別の記事数を計算
             from collections import Counter
-            platform_counts = Counter(article.platform for article in articles)
+            platform_counts = Counter(article.platform for article in search_result.articles)
             platform_stats = {platform: count for platform, count in platform_counts.items()}
             
             return render_template('results.html', 
                                  tool_name=tool_name,
-                                 articles=articles,
-                                 total_count=len(articles),
+                                 articles=search_result.articles,
+                                 total_count=search_result.total_count,
                                  platform_stats=platform_stats)
         
         except Exception as e:
