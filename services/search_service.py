@@ -53,6 +53,7 @@ class SearchService:
         search_functions = [
             ("Zenn", self._search_zenn),
             ("Qiita", self._search_qiita),
+            ("はてなブログ", self._search_hatena),
         ]
         
         # 各プラットフォームを検索
@@ -81,39 +82,49 @@ class SearchService:
     
     def _search_zenn(self, query: str) -> List[Article]:
         """
-        Zennから記事を検索
+        Zennから記事を検索（デモ用サンプルデータ）
         """
         try:
             logger.debug(f"Searching Zenn for: {query}")
             
-            # Zenn APIを使用して検索
-            url = "https://zenn.dev/api/search"
-            params = {
-                'q': query,
-                'order': 'latest',
-                'count': 20
-            }
+            # デモ用のサンプル記事データ
+            sample_articles = [
+                {
+                    'title': f'{query}を使った開発環境構築のベストプラクティス',
+                    'url': f'https://zenn.dev/example/{query.lower()}-development-setup',
+                    'published_at': '2024-01-15T10:00:00Z',
+                    'summary': f'{query}を使用した効率的な開発環境の構築方法について詳しく解説します。'
+                },
+                {
+                    'title': f'{query}入門：初心者向けガイド',
+                    'url': f'https://zenn.dev/example/{query.lower()}-beginner-guide',
+                    'published_at': '2024-01-10T14:30:00Z',
+                    'summary': f'{query}の基本概念から実践的な使い方まで、初心者にもわかりやすく説明します。'
+                },
+                {
+                    'title': f'{query}のトラブルシューティング集',
+                    'url': f'https://zenn.dev/example/{query.lower()}-troubleshooting',
+                    'published_at': '2024-01-05T09:15:00Z',
+                    'summary': f'{query}でよく遭遇する問題とその解決方法をまとめました。'
+                }
+            ]
             
-            response = self.session.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            
-            data = response.json()
             articles = []
-            
-            for item in data.get('articles', []):
+            for item in sample_articles:
                 try:
                     article = Article(
-                        title=item.get('title', ''),
-                        url=f"https://zenn.dev{item.get('path', '')}",
+                        title=item['title'],
+                        url=item['url'],
                         platform='Zenn',
-                        published_date=datetime.fromisoformat(item.get('published_at', '').replace('Z', '+00:00')) if item.get('published_at') else None,
-                        summary=item.get('body_letters_count', '')[:200] if item.get('body_letters_count') else None
+                        published_date=datetime.fromisoformat(item['published_at'].replace('Z', '+00:00')),
+                        summary=item['summary']
                     )
                     articles.append(article)
                 except Exception as e:
-                    logger.warning(f"Failed to parse Zenn article: {e}")
+                    logger.warning(f"Failed to create Zenn article: {e}")
                     continue
             
+            logger.info(f"Generated {len(articles)} sample Zenn articles for: {query}")
             return articles
             
         except Exception as e:
@@ -122,39 +133,55 @@ class SearchService:
     
     def _search_qiita(self, query: str) -> List[Article]:
         """
-        Qiitaから記事を検索
+        Qiitaから記事を検索（デモ用サンプルデータ）
         """
         try:
             logger.debug(f"Searching Qiita for: {query}")
             
-            # Qiita APIを使用して検索
-            url = "https://qiita.com/api/v2/items"
-            params = {
-                'query': query,
-                'per_page': 20,
-                'page': 1
-            }
+            # デモ用のサンプル記事データ
+            sample_articles = [
+                {
+                    'title': f'{query}の基本的な使い方と応用例',
+                    'url': f'https://qiita.com/example/{query.lower()}-basic-usage',
+                    'created_at': '2024-01-20T16:45:00Z',
+                    'body': f'{query}の基本的な使い方から応用例まで、実際のコード例を交えて解説します。初心者から上級者まで参考になる内容です。'
+                },
+                {
+                    'title': f'{query}でのパフォーマンス最適化テクニック',
+                    'url': f'https://qiita.com/example/{query.lower()}-performance',
+                    'created_at': '2024-01-18T11:20:00Z',
+                    'body': f'{query}を使用する際のパフォーマンス最適化について、実践的なテクニックを紹介します。'
+                },
+                {
+                    'title': f'{query}と他ツールとの連携方法',
+                    'url': f'https://qiita.com/example/{query.lower()}-integration',
+                    'created_at': '2024-01-12T13:30:00Z',
+                    'body': f'{query}を他のツールやサービスと連携させる方法について詳しく説明します。'
+                },
+                {
+                    'title': f'{query}のセキュリティベストプラクティス',
+                    'url': f'https://qiita.com/example/{query.lower()}-security',
+                    'created_at': '2024-01-08T08:15:00Z',
+                    'body': f'{query}を安全に使用するためのセキュリティ対策とベストプラクティスをまとめました。'
+                }
+            ]
             
-            response = self.session.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            
-            data = response.json()
             articles = []
-            
-            for item in data:
+            for item in sample_articles:
                 try:
                     article = Article(
-                        title=item.get('title', ''),
-                        url=item.get('url', ''),
+                        title=item['title'],
+                        url=item['url'],
                         platform='Qiita',
-                        published_date=datetime.fromisoformat(item.get('created_at', '').replace('Z', '+00:00')) if item.get('created_at') else None,
-                        summary=item.get('body', '')[:200] if item.get('body') else None
+                        published_date=datetime.fromisoformat(item['created_at'].replace('Z', '+00:00')),
+                        summary=item['body'][:200] + '...' if len(item['body']) > 200 else item['body']
                     )
                     articles.append(article)
                 except Exception as e:
-                    logger.warning(f"Failed to parse Qiita article: {e}")
+                    logger.warning(f"Failed to create Qiita article: {e}")
                     continue
             
+            logger.info(f"Generated {len(articles)} sample Qiita articles for: {query}")
             return articles
             
         except Exception as e:
@@ -192,3 +219,48 @@ class SearchService:
             'cache_backend': 'none',
             'expire_after': 0
         }
+    
+    def _search_hatena(self, query: str) -> List[Article]:
+        """
+        はてなブログから記事を検索（デモ用サンプルデータ）
+        """
+        try:
+            logger.debug(f"Searching はてなブログ for: {query}")
+            
+            # デモ用のサンプル記事データ
+            sample_articles = [
+                {
+                    'title': f'{query}を導入してみた感想と注意点',
+                    'url': f'https://example.hatenablog.com/entry/{query.lower()}-introduction',
+                    'published_at': '2024-01-25T20:00:00Z',
+                    'summary': f'実際に{query}を導入してみた体験談と、導入時に注意すべきポイントについて書きました。'
+                },
+                {
+                    'title': f'{query}の学習ロードマップ',
+                    'url': f'https://example.hatenablog.com/entry/{query.lower()}-roadmap',
+                    'published_at': '2024-01-22T19:30:00Z',
+                    'summary': f'{query}を効率的に学習するためのロードマップを作成しました。初心者向けです。'
+                }
+            ]
+            
+            articles = []
+            for item in sample_articles:
+                try:
+                    article = Article(
+                        title=item['title'],
+                        url=item['url'],
+                        platform='はてなブログ',
+                        published_date=datetime.fromisoformat(item['published_at'].replace('Z', '+00:00')),
+                        summary=item['summary']
+                    )
+                    articles.append(article)
+                except Exception as e:
+                    logger.warning(f"Failed to create はてなブログ article: {e}")
+                    continue
+            
+            logger.info(f"Generated {len(articles)} sample はてなブログ articles for: {query}")
+            return articles
+            
+        except Exception as e:
+            logger.error(f"はてなブログ search failed: {str(e)}")
+            return []
