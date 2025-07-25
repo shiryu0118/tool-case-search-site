@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: tool-case-search-site
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - data-volume:/data
+    environment:
+      - FLASK_DEBUG=true
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_PATH=/data/app.db
+      - CACHE_EXPIRE_HOURS=1
+      - LOG_LEVEL=INFO
+    command: >
+      sh -c "python -c 'from database.init_db import initialize_database; initialize_database()' &&
+             flask run --host=0.0.0.0 --port=5000"
+    restart: unless-stopped
+
+  # 開発用ツール
+  dev-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: tool-case-search-site-dev
+    volumes:
+      - ./:/app
+    environment:
+      - FLASK_DEBUG=true
+      - DATABASE_PATH=/data/app.db
+    depends_on:
+      - app
+    profiles:
+      - dev
+    command: >
+      sh -c "pip install black isort pytest pytest-cov &&
+             echo 'Development tools installed. Ready for development.'"
+
+volumes:
+  data-volume:

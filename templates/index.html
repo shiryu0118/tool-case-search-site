@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム - ツール活用事例検索サイト{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="開発ツールの活用事例をZenn、Qiita、はてなブログから検索できるサイトです。">
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <!-- ヘッダーセクション -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-primary mb-3">
+                <i class="fas fa-search me-3"></i>
+                ツール活用事例検索
+            </h1>
+            <p class="lead text-muted">
+                開発ツールの活用事例を複数のプラットフォームから一括検索
+            </p>
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <span class="badge bg-primary fs-6">Zenn</span>
+                <span class="badge bg-success fs-6">Qiita</span>
+                <span class="badge bg-info fs-6">はてなブログ</span>
+            </div>
+        </div>
+
+        <!-- 検索フォーム -->
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('search') }}" id="searchForm" novalidate>
+                    <div class="mb-4">
+                        <label for="tool_name" class="form-label fw-semibold">
+                            <i class="fas fa-tools me-2"></i>
+                            検索したいツール名
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="tool_name" 
+                                name="tool_name" 
+                                placeholder="例: Docker, React, Python, Git..."
+                                required
+                                minlength="1"
+                                maxlength="100"
+                                autocomplete="off"
+                            >
+                            <button 
+                                class="btn btn-primary" 
+                                type="submit" 
+                                id="searchButton"
+                            >
+                                <i class="fas fa-search me-2"></i>
+                                検索
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="toolNameError">
+                            ツール名を入力してください（1文字以上100文字以下）
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            検索したいツールやライブラリの名前を入力してください
+                        </div>
+                    </div>
+
+                    <!-- 検索オプション（将来の拡張用） -->
+                    <div class="collapse" id="advancedOptions">
+                        <div class="border-top pt-3">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-cog me-2"></i>
+                                詳細オプション
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeZenn" name="platforms" value="zenn" checked>
+                                        <label class="form-check-label" for="includeZenn">
+                                            <span class="badge bg-primary me-2">Zenn</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeQiita" name="platforms" value="qiita" checked>
+                                        <label class="form-check-label" for="includeQiita">
+                                            <span class="badge bg-success me-2">Qiita</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeHatena" name="platforms" value="hatena" checked>
+                                        <label class="form-check-label" for="includeHatena">
+                                            <span class="badge bg-info me-2">はてなブログ</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 詳細オプション切り替えボタン -->
+                    <div class="text-center">
+                        <button 
+                            class="btn btn-link btn-sm text-muted" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#advancedOptions"
+                            aria-expanded="false"
+                            aria-controls="advancedOptions"
+                        >
+                            <i class="fas fa-chevron-down me-1"></i>
+                            詳細オプション
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 使い方ガイド -->
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-edit text-primary fs-4"></i>
+                    </div>
+                    <h5>1. ツール名を入力</h5>
+                    <p class="text-muted small">
+                        検索したい開発ツールやライブラリの名前を入力してください
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-search text-success fs-4"></i>
+                    </div>
+                    <h5>2. 一括検索実行</h5>
+                    <p class="text-muted small">
+                        複数のプラットフォームから関連記事を自動で検索します
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-list text-info fs-4"></i>
+                    </div>
+                    <h5>3. 結果を確認</h5>
+                    <p class="text-muted small">
+                        見つかった記事の一覧を確認し、詳細をチェックできます
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 人気の検索キーワード例 -->
+        <div class="mt-5">
+            <h6 class="text-muted mb-3">
+                <i class="fas fa-fire me-2"></i>
+                人気の検索キーワード
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="Docker">
+                    Docker
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="React">
+                    React
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="Python">
+                    Python
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="TypeScript">
+                    TypeScript
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="Next.js">
+                    Next.js
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="Vue.js">
+                    Vue.js
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="AWS">
+                    AWS
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm keyword-suggestion" data-keyword="Git">
+                    Git
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ローディングモーダル -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">検索中...</span>
+                </div>
+                <h5 class="mb-2">検索中...</h5>
+                <p class="text-muted mb-0">
+                    複数のプラットフォームから記事を検索しています
+                </p>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // フォーム要素の取得
+    const searchForm = document.getElementById('searchForm');
+    const toolNameInput = document.getElementById('tool_name');
+    const searchButton = document.getElementById('searchButton');
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    
+    // キーワード提案ボタンのイベントリスナー
+    document.querySelectorAll('.keyword-suggestion').forEach(button => {
+        button.addEventListener('click', function() {
+            const keyword = this.getAttribute('data-keyword');
+            toolNameInput.value = keyword;
+            toolNameInput.focus();
+        });
+    });
+    
+    // フォーム送信時のバリデーションとローディング表示
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // バリデーション
+        const toolName = toolNameInput.value.trim();
+        
+        if (!toolName) {
+            toolNameInput.classList.add('is-invalid');
+            toolNameInput.focus();
+            return;
+        }
+        
+        if (toolName.length > 100) {
+            toolNameInput.classList.add('is-invalid');
+            toolNameInput.focus();
+            return;
+        }
+        
+        // バリデーション成功時
+        toolNameInput.classList.remove('is-invalid');
+        toolNameInput.classList.add('is-valid');
+        
+        // ローディング表示
+        loadingModal.show();
+        
+        // フォーム送信
+        this.submit();
+    });
+    
+    // 入力時のリアルタイムバリデーション
+    toolNameInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        
+        if (value && value.length <= 100) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else if (value.length > 100) {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-valid', 'is-invalid');
+        }
+    });
+    
+    // Enterキーでの送信
+    toolNameInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchForm.dispatchEvent(new Event('submit'));
+        }
+    });
+    
+    // フォーカス時にプレースホルダーをクリア
+    toolNameInput.addEventListener('focus', function() {
+        if (this.value === '') {
+            this.placeholder = '';
+        }
+    });
+    
+    // フォーカス外れ時にプレースホルダーを復元
+    toolNameInput.addEventListener('blur', function() {
+        if (this.value === '') {
+            this.placeholder = '例: Docker, React, Python, Git...';
+        }
+    });
+});
+</script>
+{% endblock %}

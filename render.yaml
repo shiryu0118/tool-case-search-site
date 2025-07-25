@@ -1,0 +1,24 @@
+services:
+  # Web service (無料プラン対応)
+  - type: web
+    name: tool-case-search-site
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: FLASK_DEBUG
+        value: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CACHE_EXPIRE_HOURS
+        value: 1
+      - key: DATABASE_PATH
+        value: /tmp/app.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GSHEET_ID
+        sync: false
+      - key: SHEET_NAME
+        value: Sheet1
+      - key: CREDENTIALS_JSON_CONTENT
+        sync: false

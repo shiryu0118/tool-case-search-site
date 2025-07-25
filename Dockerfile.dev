@@ -1,0 +1,38 @@
+FROM python:3.11-slim
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# 必要なパッケージをインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 開発用ツールをインストール
+RUN pip install --no-cache-dir \
+    black \
+    isort \
+    pytest \
+    pytest-cov \
+    pytest-mock \
+    responses \
+    flask-shell-ipython \
+    ipdb
+
+# 依存関係をコピーしてインストール
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 環境変数を設定
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# 開発用シェルを設定
+RUN echo 'alias ll="ls -la"' >> ~/.bashrc
+RUN echo 'alias pytest="python -m pytest"' >> ~/.bashrc
+
+# コンテナ起動時のデフォルトコマンド
+CMD ["bash"]

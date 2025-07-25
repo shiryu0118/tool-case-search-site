@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}検索結果 - {{ search_query }} - ツール活用事例検索サイト{% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="{{ search_query }}の検索結果 - {{ total_articles }}件の記事が見つかりました">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- 検索結果ヘッダー -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-2">
+                    <i class="fas fa-search-plus me-2 text-primary"></i>
+                    検索結果
+                </h2>
+                <p class="text-muted mb-0">
+                    「<strong class="text-primary">{{ search_query }}</strong>」の検索結果
+                    <span class="badge bg-primary ms-2">{{ total_articles }}件</span>
+                </p>
+            </div>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-search me-2"></i>
+                    新しい検索
+                </a>
+            </div>
+        </div>
+
+        <!-- 検索統計 -->
+        {% if platform_stats %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body py-3">
+                        <h6 class="card-title mb-3">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            プラットフォーム別結果
+                        </h6>
+                        <div class="row text-center">
+                            {% for platform, count in platform_stats.items() %}
+                            <div class="col-md-4 col-sm-6 mb-2">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    {% if platform == 'zenn' %}
+                                        <span class="badge platform-zenn me-2">Zenn</span>
+                                    {% elif platform == 'qiita' %}
+                                        <span class="badge platform-qiita me-2">Qiita</span>
+                                    {% elif platform == 'hatena' %}
+                                        <span class="badge platform-hatena me-2">はてなブログ</span>
+                                    {% endif %}
+                                    <span class="fw-bold">{{ count }}件</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 検索結果一覧 -->
+        {% if articles %}
+            <!-- ソート・フィルター -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <label for="sortBy" class="form-label me-2 mb-0">並び順:</label>
+                        <select class="form-select form-select-sm" id="sortBy" style="width: auto;">
+                            <option value="date_desc">公開日（新しい順）</option>
+                            <option value="date_asc">公開日（古い順）</option>
+                            <option value="platform">プラットフォーム順</option>
+                            <option value="title">タイトル順</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <label for="filterPlatform" class="form-label me-2 mb-0">フィルター:</label>
+                        <select class="form-select form-select-sm" id="filterPlatform" style="width: auto;">
+                            <option value="all">すべて</option>
+                            <option value="zenn">Zenn</option>
+                            <option value="qiita">Qiita</option>
+                            <option value="hatena">はてなブログ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 記事一覧 -->
+            <div id="articlesList">
+                {% for article in articles %}
+                <div class="card mb-3 search-result-item fade-in article-item" 
+                     data-platform="{{ article.platform }}" 
+                     data-date="{{ article.published_date.isoformat() if article.published_date else '' }}"
+                     data-title="{{ article.title }}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title mb-2">
+                                    <a href="{{ article.url }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer" 
+                                       class="article-title">
+                                        {{ article.title }}
+                                        <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
+                                    </a>
+                                </h5>
+                                
+                                {% if article.summary %}
+                                <p class="card-text text-muted text-truncate-3">
+                                    {{ article.summary }}
+                                </p>
+                                {% endif %}
+                                
+                                <div class="article-meta">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {% if article.published_date %}
+                                        {{ article.published_date.strftime('%Y年%m月%d日') }}
+                                    {% else %}
+                                        公開日不明
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="mb-2">
+                                    {% if article.platform == 'zenn' %}
+                                        <span class="badge platform-zenn platform-badge">
+                                            <i class="fas fa-book me-1"></i>
+                                            Zenn
+                                        </span>
+                                    {% elif article.platform == 'qiita' %}
+                                        <span class="badge platform-qiita platform-badge">
+                                            <i class="fas fa-code me-1"></i>
+                                            Qiita
+                                        </span>
+                                    {% elif article.platform == 'hatena' %}
+                                        <span class="badge platform-hatena platform-badge">
+                                            <i class="fas fa-blog me-1"></i>
+                                            はてなブログ
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="{{ article.url }}" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>
+                                        記事を読む
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ページネーション -->
+            {% if pagination and pagination.pages > 1 %}
+            <nav aria-label="検索結果ページネーション" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- 前のページ -->
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('search', tool_name=search_query, page=pagination.prev_num) }}">
+                            <i class="fas fa-chevron-left me-1"></i>
+                            前へ
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fas fa-chevron-left me-1"></i>
+                            前へ
+                        </span>
+                    </li>
+                    {% endif %}
+
+                    <!-- ページ番号 -->
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('search', tool_name=search_query, page=page_num) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- 次のページ -->
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('search', tool_name=search_query, page=pagination.next_num) }}">
+                            次へ
+                            <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            次へ
+                            <i class="fas fa-chevron-right ms-1"></i>
+                        </span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <!-- ページ情報 -->
+            <div class="text-center text-muted mt-3">
+                <small>
+                    {{ pagination.total }}件中 
+                    {{ (pagination.page - 1) * pagination.per_page + 1 }}〜{{ 
+                        pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total 
+                        else pagination.total 
+                    }}件を表示
+                </small>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- 検索結果なし -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-search text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                </div>
+                <h4 class="text-muted mb-3">該当する記事が見つかりませんでした</h4>
+                <p class="text-muted mb-4">
+                    「{{ search_query }}」に関する記事は見つかりませんでした。<br>
+                    別のキーワードで検索してみてください。
+                </p>
+                
+                <!-- 検索のヒント -->
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            検索のヒント
+                        </h6>
+                        <ul class="list-unstyled text-start mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                より一般的なキーワードを試してみてください
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                英語のツール名で検索してみてください
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                略語ではなく正式名称で検索してみてください
+                            </li>
+                            <li>
+                                <i class="fas fa-check text-success me-2"></i>
+                                関連するキーワードを組み合わせてみてください
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>
+                        新しい検索を開始
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortSelect = document.getElementById('sortBy');
+    const filterSelect = document.getElementById('filterPlatform');
+    const articlesList = document.getElementById('articlesList');
+    
+    if (!sortSelect || !filterSelect || !articlesList) return;
+    
+    const articles = Array.from(articlesList.querySelectorAll('.article-item'));
+    
+    // ソート機能
+    function sortArticles(criteria) {
+        const sortedArticles = [...articles].sort((a, b) => {
+            switch (criteria) {
+                case 'date_desc':
+                    const dateA = new Date(a.dataset.date || '1970-01-01');
+                    const dateB = new Date(b.dataset.date || '1970-01-01');
+                    return dateB - dateA;
+                    
+                case 'date_asc':
+                    const dateA2 = new Date(a.dataset.date || '1970-01-01');
+                    const dateB2 = new Date(b.dataset.date || '1970-01-01');
+                    return dateA2 - dateB2;
+                    
+                case 'platform':
+                    const platformOrder = { 'zenn': 1, 'qiita': 2, 'hatena': 3 };
+                    return (platformOrder[a.dataset.platform] || 4) - (platformOrder[b.dataset.platform] || 4);
+                    
+                case 'title':
+                    return a.dataset.title.localeCompare(b.dataset.title, 'ja');
+                    
+                default:
+                    return 0;
+            }
+        });
+        
+        // DOM要素を再配置
+        sortedArticles.forEach(article => {
+            articlesList.appendChild(article);
+        });
+    }
+    
+    // フィルター機能
+    function filterArticles(platform) {
+        articles.forEach(article => {
+            if (platform === 'all' || article.dataset.platform === platform) {
+                article.style.display = 'block';
+                article.classList.add('fade-in');
+            } else {
+                article.style.display = 'none';
+                article.classList.remove('fade-in');
+            }
+        });
+        
+        // 結果数の更新
+        updateResultCount();
+    }
+    
+    // 結果数の更新
+    function updateResultCount() {
+        const visibleArticles = articles.filter(article => article.style.display !== 'none');
+        const countBadge = document.querySelector('.badge.bg-primary');
+        if (countBadge) {
+            countBadge.textContent = `${visibleArticles.length}件`;
+        }
+    }
+    
+    // イベントリスナー
+    sortSelect.addEventListener('change', function() {
+        sortArticles(this.value);
+    });
+    
+    filterSelect.addEventListener('change', function() {
+        filterArticles(this.value);
+    });
+    
+    // 初期ソート（公開日の新しい順）
+    sortArticles('date_desc');
+    
+    // 記事リンクのクリック追跡（分析用）
+    articles.forEach(article => {
+        const link = article.querySelector('.article-title');
+        if (link) {
+            link.addEventListener('click', function() {
+                // 将来的にアナリティクス追跡を追加可能
+                console.log('Article clicked:', this.textContent.trim());
+            });
+        }
+    });
+    
+    // スムーズスクロール
+    const newSearchBtn = document.querySelector('a[href*="index"]');
+    if (newSearchBtn) {
+        newSearchBtn.addEventListener('click', function(e) {
+            // ページ遷移前にスクロール位置をリセット
+            window.scrollTo(0, 0);
+        });
+    }
+});
+</script>
+{% endblock %}
