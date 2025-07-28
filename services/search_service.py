@@ -4,8 +4,9 @@
 import logging
 import requests
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
+import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from models.article import Article
@@ -87,25 +88,33 @@ class SearchService:
         try:
             logger.debug(f"Searching Zenn for: {query}")
             
-            # デモ用のサンプル記事データ
+            # 直近3か月以内のランダムな日付を生成
+            now = datetime.now()
+            three_months_ago = now - timedelta(days=90)
+            
+            def random_recent_date():
+                days_ago = random.randint(1, 90)
+                return now - timedelta(days=days_ago)
+            
+            # 実在するZennの記事URLを使用（デモ用）
             sample_articles = [
                 {
                     'title': f'{query}を使った開発環境構築のベストプラクティス',
-                    'url': f'https://zenn.dev/example/{query.lower()}-development-setup',
-                    'published_at': '2024-01-15T10:00:00Z',
-                    'summary': f'{query}を使用した効率的な開発環境の構築方法について詳しく解説します。'
+                    'url': 'https://zenn.dev/topics/docker',  # 実在するZennのトピックページ
+                    'published_at': random_recent_date().isoformat() + 'Z',
+                    'summary': f'{query}を使用した効率的な開発環境の構築方法について詳しく解説します。実際のプロジェクトでの導入事例も紹介。'
                 },
                 {
                     'title': f'{query}入門：初心者向けガイド',
-                    'url': f'https://zenn.dev/example/{query.lower()}-beginner-guide',
-                    'published_at': '2024-01-10T14:30:00Z',
-                    'summary': f'{query}の基本概念から実践的な使い方まで、初心者にもわかりやすく説明します。'
+                    'url': 'https://zenn.dev/topics/react',  # 実在するZennのトピックページ
+                    'published_at': random_recent_date().isoformat() + 'Z',
+                    'summary': f'{query}の基本概念から実践的な使い方まで、初心者にもわかりやすく説明します。サンプルコード付き。'
                 },
                 {
                     'title': f'{query}のトラブルシューティング集',
-                    'url': f'https://zenn.dev/example/{query.lower()}-troubleshooting',
-                    'published_at': '2024-01-05T09:15:00Z',
-                    'summary': f'{query}でよく遭遇する問題とその解決方法をまとめました。'
+                    'url': 'https://zenn.dev/topics/javascript',  # 実在するZennのトピックページ
+                    'published_at': random_recent_date().isoformat() + 'Z',
+                    'summary': f'{query}でよく遭遇する問題とその解決方法をまとめました。エラーメッセージ別の対処法も掲載。'
                 }
             ]
             
@@ -138,31 +147,38 @@ class SearchService:
         try:
             logger.debug(f"Searching Qiita for: {query}")
             
-            # デモ用のサンプル記事データ
+            # 直近3か月以内のランダムな日付を生成
+            now = datetime.now()
+            
+            def random_recent_date():
+                days_ago = random.randint(1, 90)
+                return now - timedelta(days=days_ago)
+            
+            # 実在するQiitaの記事URLを使用（デモ用）
             sample_articles = [
                 {
                     'title': f'{query}の基本的な使い方と応用例',
-                    'url': f'https://qiita.com/example/{query.lower()}-basic-usage',
-                    'created_at': '2024-01-20T16:45:00Z',
+                    'url': 'https://qiita.com/tags/docker',  # 実在するQiitaのタグページ
+                    'created_at': random_recent_date().isoformat() + 'Z',
                     'body': f'{query}の基本的な使い方から応用例まで、実際のコード例を交えて解説します。初心者から上級者まで参考になる内容です。'
                 },
                 {
                     'title': f'{query}でのパフォーマンス最適化テクニック',
-                    'url': f'https://qiita.com/example/{query.lower()}-performance',
-                    'created_at': '2024-01-18T11:20:00Z',
-                    'body': f'{query}を使用する際のパフォーマンス最適化について、実践的なテクニックを紹介します。'
+                    'url': 'https://qiita.com/tags/react',  # 実在するQiitaのタグページ
+                    'created_at': random_recent_date().isoformat() + 'Z',
+                    'body': f'{query}を使用する際のパフォーマンス最適化について、実践的なテクニックを紹介します。メモリ使用量の削減方法も解説。'
                 },
                 {
                     'title': f'{query}と他ツールとの連携方法',
-                    'url': f'https://qiita.com/example/{query.lower()}-integration',
-                    'created_at': '2024-01-12T13:30:00Z',
-                    'body': f'{query}を他のツールやサービスと連携させる方法について詳しく説明します。'
+                    'url': 'https://qiita.com/tags/javascript',  # 実在するQiitaのタグページ
+                    'created_at': random_recent_date().isoformat() + 'Z',
+                    'body': f'{query}を他のツールやサービスと連携させる方法について詳しく説明します。API連携の実装例も含みます。'
                 },
                 {
                     'title': f'{query}のセキュリティベストプラクティス',
-                    'url': f'https://qiita.com/example/{query.lower()}-security',
-                    'created_at': '2024-01-08T08:15:00Z',
-                    'body': f'{query}を安全に使用するためのセキュリティ対策とベストプラクティスをまとめました。'
+                    'url': 'https://qiita.com/tags/python',  # 実在するQiitaのタグページ
+                    'created_at': random_recent_date().isoformat() + 'Z',
+                    'body': f'{query}を安全に使用するためのセキュリティ対策とベストプラクティスをまとめました。脆弱性対策も詳しく解説。'
                 }
             ]
             
@@ -227,19 +243,26 @@ class SearchService:
         try:
             logger.debug(f"Searching はてなブログ for: {query}")
             
-            # デモ用のサンプル記事データ
+            # 直近3か月以内のランダムな日付を生成
+            now = datetime.now()
+            
+            def random_recent_date():
+                days_ago = random.randint(1, 90)
+                return now - timedelta(days=days_ago)
+            
+            # 実在するはてなブログのURLを使用（デモ用）
             sample_articles = [
                 {
                     'title': f'{query}を導入してみた感想と注意点',
-                    'url': f'https://example.hatenablog.com/entry/{query.lower()}-introduction',
-                    'published_at': '2024-01-25T20:00:00Z',
-                    'summary': f'実際に{query}を導入してみた体験談と、導入時に注意すべきポイントについて書きました。'
+                    'url': 'https://developer.hatenastaff.com/',  # 実在するはてなの開発者ブログ
+                    'published_at': random_recent_date().isoformat() + 'Z',
+                    'summary': f'実際に{query}を導入してみた体験談と、導入時に注意すべきポイントについて書きました。実際の運用での課題も共有します。'
                 },
                 {
                     'title': f'{query}の学習ロードマップ',
-                    'url': f'https://example.hatenablog.com/entry/{query.lower()}-roadmap',
-                    'published_at': '2024-01-22T19:30:00Z',
-                    'summary': f'{query}を効率的に学習するためのロードマップを作成しました。初心者向けです。'
+                    'url': 'https://blog.hatena.ne.jp/',  # 実在するはてなブログのトップページ
+                    'published_at': random_recent_date().isoformat() + 'Z',
+                    'summary': f'{query}を効率的に学習するためのロードマップを作成しました。初心者向けの学習順序と参考資料も紹介。'
                 }
             ]
             
